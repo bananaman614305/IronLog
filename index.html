@@ -1,3 +1,4 @@
+cat > /home/claude/ironlog_fixed.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,257 +8,148 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="IronLog" />
   <title>IronLog</title>
-
-  <!-- PWA Manifest inline -->
-  <script>
-    const manifest = {
-      name: "IronLog - Fitness Tracker",
-      short_name: "IronLog",
-      description: "Track your weight room progress",
-      start_url: ".",
-      display: "standalone",
-      background_color: "#0a0a0a",
-      theme_color: "#0a0a0a",
-      icons: [
-        { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a0a'/><text y='.9em' font-size='80' x='10'>🏋️</text></svg>", sizes: "192x192", type: "image/svg+xml" }
-      ]
-    };
-    const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-    const manifestURL = URL.createObjectURL(blob);
-    document.write('<link rel="manifest" href="' + manifestURL + '">');
-  </script>
-
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #0a0a0a; --surface: #141414; --surface2: #1e1e1e;
-      --border: #2a2a2a; --accent: #e8ff00; --accent2: #ff4d00;
-      --text: #f0f0f0; --muted: #666; --success: #00e87a;
-    }
-    html, body { height: 100%; overflow: hidden; }
-    body {
-      background: var(--bg); color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      max-width: 430px; margin: 0 auto;
-      height: 100%; display: flex; flex-direction: column;
-      -webkit-tap-highlight-color: transparent;
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-    #app { display: flex; flex-direction: column; height: 100%; }
-    .header {
-      padding: 16px 20px 0; display: flex;
-      align-items: center; justify-content: space-between;
-      flex-shrink: 0;
-    }
-    .logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; color: var(--accent); line-height: 1; }
-    .logo span { color: var(--text); }
-    .date-badge { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
-    .content { flex: 1; overflow-y: auto; padding: 16px 20px 20px; -webkit-overflow-scrolling: touch; }
-    .nav {
-      flex-shrink: 0; background: #111;
-      border-top: 1px solid var(--border); display: flex;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-    .nav-btn {
-      flex: 1; display: flex; flex-direction: column; align-items: center;
-      gap: 4px; padding: 12px 8px; background: none; border: none; cursor: pointer;
-      color: var(--muted); font-size: 10px; font-family: 'DM Mono', monospace;
-      letter-spacing: 1px; text-transform: uppercase; transition: color 0.2s;
-    }
-    .nav-btn.active { color: var(--accent); }
-    .nav-btn svg { width: 22px; height: 22px; }
-    .streak-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 16px; padding: 24px; margin-bottom: 16px;
-      position: relative; overflow: hidden;
-    }
-    .streak-card::before {
-      content: ''; position: absolute; top: -40px; right: -40px;
-      width: 120px; height: 120px; background: var(--accent); opacity: 0.05; border-radius: 50%;
-    }
-    .streak-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
-    .streak-num { font-family: 'Bebas Neue', sans-serif; font-size: 72px; line-height: 1; color: var(--accent); }
-    .streak-sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
-    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin: 24px 0 12px; }
-    .btn {
-      display: block; width: 100%; padding: 16px; background: var(--accent); color: #000;
-      border: none; border-radius: 12px; font-family: 'Bebas Neue', sans-serif;
-      font-size: 20px; letter-spacing: 2px; cursor: pointer; text-align: center;
-      transition: transform 0.1s, opacity 0.1s; margin-bottom: 0;
-    }
-    .btn:active { transform: scale(0.98); opacity: 0.9; }
-    .btn-ghost { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
-    .btn-sm { width: auto; display: inline-block; padding: 8px 16px; font-size: 14px; border-radius: 8px; }
-    .mb10 { margin-bottom: 10px; }
-    .mb16 { margin-bottom: 16px; }
-    .session-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; padding: 16px; margin-bottom: 10px;
-      display: flex; align-items: center; gap: 12px;
-    }
-    .session-icon {
-      width: 44px; height: 44px; background: var(--surface2);
-      border-radius: 10px; display: flex; align-items: center; justify-content: center;
-      font-size: 20px; flex-shrink: 0;
-    }
-    .session-info { flex: 1; }
-    .session-name { font-weight: 500; font-size: 15px; }
-    .session-meta { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
-    .day-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 20px; scrollbar-width: none; }
-    .day-tabs::-webkit-scrollbar { display: none; }
-    .day-tab {
-      flex-shrink: 0; padding: 8px 14px; background: var(--surface);
-      border: 1px solid var(--border); border-radius: 20px;
-      font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1px;
-      text-transform: uppercase; color: var(--muted); cursor: pointer; transition: all 0.2s;
-    }
-    .day-tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
-    .exercise-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
-    .ex-btn {
-      padding: 12px; background: var(--surface); border: 1px solid var(--border);
-      border-radius: 10px; color: var(--text); font-size: 13px; text-align: center;
-      cursor: pointer; transition: all 0.2s;
-    }
-    .ex-btn:active { border-color: var(--accent); color: var(--accent); background: #1a1a00; }
-    .set-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .set-label { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); width: 36px; flex-shrink: 0; }
-    .set-input {
-      flex: 1; padding: 12px; background: var(--surface); border: 1px solid var(--border);
-      border-radius: 8px; color: var(--text); font-family: 'DM Mono', monospace;
-      font-size: 15px; text-align: center; outline: none; -webkit-appearance: none;
-      appearance: none;
-    }
-    .set-input:focus { border-color: var(--accent); }
-    .set-x { color: var(--muted); font-size: 14px; flex-shrink: 0; }
-    .del-btn { background: none; border: none; color: var(--muted); cursor: pointer; padding: 8px; font-size: 18px; flex-shrink: 0; }
-    .add-set-btn {
-      width: 100%; padding: 12px; background: none; border: 1px dashed var(--border);
-      border-radius: 8px; color: var(--muted); font-size: 13px; cursor: pointer;
-      margin-bottom: 16px; transition: all 0.2s;
-    }
-    .add-set-btn:active { border-color: var(--accent); color: var(--accent); }
-    .logged-exercise { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 10px; }
-    .logged-ex-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .logged-ex-name { font-weight: 500; font-size: 15px; }
-    .set-pill { display: inline-block; padding: 4px 8px; background: var(--surface2); border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin: 2px; }
-    .set-pill.pr { background: #1a1500; color: var(--accent); }
-    .history-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
-    .history-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-    .history-ex { font-size: 13px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid var(--border); }
-    .history-ex:last-child { border-bottom: none; }
-    .history-ex strong { color: var(--text); }
-    .pr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-    .pr-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
-    .pr-exercise { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; letter-spacing: 0.5px; margin-bottom: 6px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
-    .pr-weight { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--accent); line-height: 1; }
-    .pr-unit { font-size: 14px; color: var(--muted); }
-    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
-    .empty-icon { font-size: 48px; margin-bottom: 12px; }
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; display: flex; align-items: flex-end; }
-    .modal { background: var(--surface); border-radius: 20px 20px 0 0; padding: 24px 20px 40px; width: 100%; border-top: 1px solid var(--border); max-height: 85vh; overflow-y: auto; }
-    .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; margin-bottom: 20px; }
-    .custom-input { width: 100%; padding: 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 16px; outline: none; margin-bottom: 12px; }
-    .custom-input:focus { border-color: var(--accent); }
-    .tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-family: 'DM Mono', monospace; letter-spacing: 1px; text-transform: uppercase; background: #001a0a; color: var(--success); margin-left: 8px; vertical-align: middle; }
-    .col-label { flex: 1; text-align: center; font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; letter-spacing: 1px; }
-    .stats-row { display: flex; gap: 32px; }
-    .hidden { display: none; }
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{--bg:#0a0a0a;--surface:#141414;--surface2:#1e1e1e;--border:#2a2a2a;--accent:#e8ff00;--text:#f0f0f0;--muted:#666;--success:#00e87a;}
+    html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent;}
+    body{display:flex;flex-direction:column;max-width:430px;margin:0 auto;height:100%;overflow:hidden;}
+    .header{padding:16px 20px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+    .logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;color:var(--accent);}
+    .logo span{color:var(--text);}
+    .datebadge{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;}
+    #content{flex:1;overflow-y:auto;padding:16px 20px 20px;-webkit-overflow-scrolling:touch;}
+    .nav{flex-shrink:0;background:#111;border-top:1px solid var(--border);display:flex;}
+    .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;background:none;border:none;cursor:pointer;color:var(--muted);font-size:10px;font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;}
+    .nav-btn.active{color:var(--accent);}
+    .nav-btn svg{width:22px;height:22px;}
+    .streak-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px;position:relative;overflow:hidden;}
+    .streak-card::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:var(--accent);opacity:0.05;border-radius:50%;}
+    .slabel{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+    .snum{font-family:'Bebas Neue',sans-serif;font-size:72px;line-height:1;color:var(--accent);}
+    .ssub{color:var(--muted);font-size:13px;margin-top:4px;}
+    .sec-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin:24px 0 12px;}
+    .btn{display:block;width:100%;padding:16px;background:var(--accent);color:#000;border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;cursor:pointer;text-align:center;margin-bottom:10px;}
+    .btn-ghost{background:var(--surface);color:var(--text);border:1px solid var(--border);}
+    .session-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
+    .session-icon{width:44px;height:44px;background:var(--surface2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+    .session-name{font-weight:500;font-size:15px;}
+    .session-meta{font-size:12px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;}
+    .day-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:20px;scrollbar-width:none;}
+    .day-tabs::-webkit-scrollbar{display:none;}
+    .day-tab{flex-shrink:0;padding:8px 14px;background:var(--surface);border:1px solid var(--border);border-radius:20px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;}
+    .day-tab.active{background:var(--accent);color:#000;border-color:var(--accent);}
+    .ex-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+    .ex-btn{padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;text-align:center;cursor:pointer;}
+    .set-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+    .set-lbl{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);width:36px;flex-shrink:0;}
+    .set-inp{flex:1;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:15px;text-align:center;outline:none;}
+    .set-inp:focus{border-color:var(--accent);}
+    .set-x{color:var(--muted);font-size:14px;flex-shrink:0;}
+    .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:8px;font-size:18px;flex-shrink:0;}
+    .add-set-btn{width:100%;padding:12px;background:none;border:1px dashed var(--border);border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;margin-bottom:16px;}
+    .logged-ex{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;}
+    .logged-ex-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+    .logged-ex-name{font-weight:500;font-size:15px;}
+    .pill{display:inline-block;padding:4px 8px;background:var(--surface2);border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin:2px;}
+    .pill.pr{background:#1a1500;color:var(--accent);}
+    .tag{display:inline-block;padding:3px 8px;border-radius:4px;font-size:10px;font-family:'DM Mono',monospace;text-transform:uppercase;background:#001a0a;color:var(--success);margin-left:8px;vertical-align:middle;}
+    .hist-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;}
+    .hist-date{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+    .hist-ex{font-size:13px;color:var(--muted);padding:4px 0;border-bottom:1px solid var(--border);}
+    .hist-ex:last-child{border-bottom:none;}
+    .hist-ex strong{color:var(--text);}
+    .pr-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+    .pr-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;}
+    .pr-ex{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .pr-w{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--accent);line-height:1;}
+    .pr-u{font-size:14px;color:var(--muted);}
+    .empty{text-align:center;padding:60px 20px;color:var(--muted);font-size:14px;}
+    .empty-icon{font-size:48px;margin-bottom:12px;}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:none;align-items:flex-end;}
+    .overlay.show{display:flex;}
+    .modal{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;border-top:1px solid var(--border);max-height:85vh;overflow-y:auto;}
+    .modal-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin-bottom:20px;}
+    .custom-inp{width:100%;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:16px;outline:none;margin-bottom:12px;}
+    .custom-inp:focus{border-color:var(--accent);}
+    .col-hdr{display:flex;gap:8px;margin-bottom:8px;}
+    .col-lbl{flex:1;text-align:center;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;}
+    .stats-row{display:flex;gap:32px;}
+    input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0;}
+    input[type=number]{-moz-appearance:textfield;appearance:textfield;}
   </style>
 </head>
 <body>
-<div id="app">
-  <div class="header">
-    <div class="logo">IRON<span>LOG</span></div>
-    <div class="date-badge" id="dateBadge"></div>
-  </div>
-  <div class="content" id="content"></div>
-  <nav class="nav">
-    <button class="nav-btn active" data-view="home" onclick="switchView('home')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
-      Home
-    </button>
-    <button class="nav-btn" data-view="log" onclick="switchView('log')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-      Log
-    </button>
-    <button class="nav-btn" data-view="history" onclick="switchView('history')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-      History
-    </button>
-    <button class="nav-btn" data-view="progress" onclick="switchView('progress')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      PRs
-    </button>
-  </nav>
+<div class="header">
+  <div class="logo">IRON<span>LOG</span></div>
+  <div class="datebadge" id="datebadge"></div>
 </div>
+<div id="content"></div>
+<nav class="nav">
+  <button class="nav-btn active" id="nav-home" onclick="go('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>Home
+  </button>
+  <button class="nav-btn" id="nav-log" onclick="go('log')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Log
+  </button>
+  <button class="nav-btn" id="nav-history" onclick="go('history')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>History
+  </button>
+  <button class="nav-btn" id="nav-progress" onclick="go('progress')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>PRs
+  </button>
+</nav>
 
-<!-- ADD EXERCISE MODAL -->
-<div class="modal-overlay hidden" id="modalOverlay" onclick="closeModal(event)">
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
   <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-title">Add Exercise</div>
-    <div id="modalContent"></div>
+    <div class="modal-title" id="modal-title">Add Exercise</div>
+    <div id="modal-body"></div>
   </div>
 </div>
 
 <script>
-const EXERCISES = [
-  "Bench Press","Squat","Deadlift","Overhead Press","Barbell Row",
-  "Incline Press","Leg Press","Pull-Up","Dumbbell Curl","Tricep Pushdown",
-  "Lateral Raise","Romanian Deadlift","Hip Thrust","Cable Row","Custom"
-];
-const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+var EXERCISES = ["Bench Press","Squat","Deadlift","Overhead Press","Barbell Row","Incline Press","Leg Press","Pull-Up","Dumbbell Curl","Tricep Pushdown","Lateral Raise","Romanian Deadlift","Hip Thrust","Cable Row","Custom"];
+var DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
-let state = {
-  view: "home",
-  sessions: [],
-  activeDay: DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1],
-  workoutLog: [],
-  addingExercise: false,
-  selectedEx: null,
-  customName: "",
-  currentSets: [{weight:"",reps:""}],
-};
+var view = "home";
+var sessions = [];
+var activeDay = DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
+var workoutLog = [];
+var selectedEx = null;
+var customName = "";
+var currentSets = [{w:"",r:""}];
 
-// Load sessions from localStorage
-try { state.sessions = JSON.parse(localStorage.getItem("ironlog_sessions") || "[]"); } catch {}
+try { sessions = JSON.parse(localStorage.getItem("ironlog2") || "[]"); } catch(e) { sessions = []; }
 
-function save() {
-  try { localStorage.setItem("ironlog_sessions", JSON.stringify(state.sessions)); } catch {}
-}
+function save() { try { localStorage.setItem("ironlog2", JSON.stringify(sessions)); } catch(e) {} }
 
-function genId() { return Math.random().toString(36).substr(2,9); }
+function uid() { return Math.random().toString(36).slice(2,9); }
 
 function getStreak() {
-  if (!state.sessions.length) return 0;
-  const dates = [...new Set(state.sessions.map(s => s.date))].sort().reverse();
-  const today = new Date().toDateString();
-  const yesterday = new Date(Date.now()-86400000).toDateString();
-  if (dates[0] !== today && dates[0] !== yesterday) return 0;
-  let streak = 0;
-  for (let i = 0; i < dates.length; i++) {
-    const expected = new Date(Date.now() - i * 86400000).toDateString();
-    if (dates[i] === expected) streak++;
+  if (!sessions.length) return 0;
+  var dates = [];
+  sessions.forEach(function(s){ if (dates.indexOf(s.date) === -1) dates.push(s.date); });
+  dates.sort().reverse();
+  var today = new Date().toDateString();
+  var yest = new Date(Date.now()-86400000).toDateString();
+  if (dates[0] !== today && dates[0] !== yest) return 0;
+  var streak = 0;
+  for (var i = 0; i < dates.length; i++) {
+    var exp = new Date(Date.now() - i*86400000).toDateString();
+    if (dates[i] === exp) streak++;
     else break;
   }
   return streak;
 }
 
 function getPRs() {
-  const prs = {};
-  state.sessions.forEach(s => {
-    (s.exercises||[]).forEach(ex => {
-      (ex.sets||[]).forEach(set => {
-        const w = parseFloat(set.weight);
+  var prs = {};
+  sessions.forEach(function(s){
+    (s.exercises||[]).forEach(function(ex){
+      (ex.sets||[]).forEach(function(set){
+        var w = parseFloat(set.w);
         if (!isNaN(w) && w > 0 && (!prs[ex.name] || w > prs[ex.name])) prs[ex.name] = w;
       });
     });
@@ -266,142 +158,186 @@ function getPRs() {
 }
 
 function isPR(name, weight) {
-  const prs = getPRs();
-  if (!prs[name]) return false;
-  return parseFloat(weight) >= prs[name];
+  var prs = getPRs();
+  return prs[name] && parseFloat(weight) >= prs[name];
 }
 
-function switchView(v) {
-  state.view = v;
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+function go(v) {
+  view = v;
+  ["home","log","history","progress"].forEach(function(n){
+    var b = document.getElementById("nav-"+n);
+    if (b) b.className = "nav-btn" + (n === v ? " active" : "");
+  });
   render();
 }
 
 function render() {
-  document.getElementById('dateBadge').textContent = new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"}).toUpperCase();
-  const content = document.getElementById('content');
-
-  if (state.view === "home") renderHome(content);
-  else if (state.view === "log") renderLog(content);
-  else if (state.view === "history") renderHistory(content);
-  else if (state.view === "progress") renderProgress(content);
-
-  if (state.addingExercise) renderModal();
-  else document.getElementById('modalOverlay').classList.add('hidden');
+  document.getElementById("datebadge").textContent = new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"}).toUpperCase();
+  var c = document.getElementById("content");
+  if (view === "home") c.innerHTML = homeHTML();
+  else if (view === "log") c.innerHTML = logHTML();
+  else if (view === "history") c.innerHTML = histHTML();
+  else if (view === "progress") c.innerHTML = progHTML();
 }
 
-function renderHome(el) {
-  const streak = getStreak();
-  const recent = state.sessions.slice(0,5);
-  el.innerHTML = `
-    <div class="streak-card">
-      <div class="streak-label">Current Streak</div>
-      <div class="streak-num">${streak}</div>
-      <div class="streak-sub">${streak === 1 ? "day" : "days"} in a row</div>
-    </div>
-    <button class="btn" onclick="switchView('log')">+ START WORKOUT</button>
-    <div class="section-title">Recent Sessions</div>
-    ${recent.length === 0
-      ? `<div class="empty-state"><div class="empty-icon">🏋️</div>No sessions yet. Start your first workout!</div>`
-      : recent.map(s => `
-        <div class="session-card">
-          <div class="session-icon">💪</div>
-          <div class="session-info">
-            <div class="session-name">${s.day}</div>
-            <div class="session-meta">${s.date} · ${(s.exercises||[]).length} exercises</div>
-          </div>
-        </div>`).join("")
-    }
-  `;
+function homeHTML() {
+  var streak = getStreak();
+  var recent = sessions.slice(0,5);
+  var html = '<div class="streak-card"><div class="slabel">Current Streak</div><div class="snum">'+streak+'</div><div class="ssub">'+(streak===1?"day":"days")+' in a row</div></div>';
+  html += '<button class="btn" onclick="go(\'log\')">+ START WORKOUT</button>';
+  html += '<div class="sec-title">Recent Sessions</div>';
+  if (!recent.length) {
+    html += '<div class="empty"><div class="empty-icon">🏋️</div>No sessions yet. Start your first workout!</div>';
+  } else {
+    recent.forEach(function(s){
+      html += '<div class="session-card"><div class="session-icon">💪</div><div><div class="session-name">'+s.day+'</div><div class="session-meta">'+s.date+' · '+(s.exercises||[]).length+' exercises</div></div></div>';
+    });
+  }
+  return html;
 }
 
-function renderLog(el) {
-  const prs = getPRs();
-  const loggedHTML = state.workoutLog.map(ex => {
-    const topSet = ex.sets.reduce((b,s) => parseFloat(s.weight) > parseFloat(b.weight||0) ? s : b, ex.sets[0]);
-    const pr = topSet && isPR(ex.name, topSet.weight);
-    const pills = ex.sets.map(s => `<span class="set-pill${isPR(ex.name,s.weight)?' pr':''}">${s.weight}lb × ${s.reps}</span>`).join("");
-    return `
-      <div class="logged-exercise">
-        <div class="logged-ex-header">
-          <div class="logged-ex-name">${ex.name}${pr?'<span class="tag">PR</span>':''}</div>
-          <button class="del-btn" onclick="removeEx('${ex.id}')">✕</button>
-        </div>
-        <div>${pills}</div>
-      </div>`;
-  }).join("");
-
-  el.innerHTML = `
-    <div class="section-title">Today's Workout</div>
-    <div class="day-tabs">
-      ${DAYS.map(d => `<div class="day-tab${state.activeDay===d?' active':''}" onclick="setDay('${d}')">${d.slice(0,3)}</div>`).join("")}
-    </div>
-    ${loggedHTML}
-    <button class="btn btn-ghost mb10" onclick="openAddExercise()">+ ADD EXERCISE</button>
-    ${state.workoutLog.length > 0 ? `<button class="btn" onclick="finishWorkout()">✓ FINISH WORKOUT</button>` : ""}
-    ${state.workoutLog.length === 0 ? `<div class="empty-state" style="padding:30px 0"><div class="empty-icon">📋</div>Add your first exercise above</div>` : ""}
-  `;
+function logHTML() {
+  var html = '<div class="sec-title">Today\'s Workout</div>';
+  html += '<div class="day-tabs">';
+  DAYS.forEach(function(d){
+    html += '<div class="day-tab'+(activeDay===d?" active":"")+'" onclick="setDay(\''+d+'\')">'+d.slice(0,3)+'</div>';
+  });
+  html += '</div>';
+  workoutLog.forEach(function(ex){
+    var topW = 0;
+    ex.sets.forEach(function(s){ if (parseFloat(s.w) > topW) topW = parseFloat(s.w); });
+    var pr = isPR(ex.name, topW);
+    html += '<div class="logged-ex"><div class="logged-ex-hdr"><div class="logged-ex-name">'+ex.name+(pr?'<span class="tag">PR</span>':'')+'</div><button class="del-btn" onclick="removeEx(\''+ex.id+'\')">✕</button></div><div>';
+    ex.sets.forEach(function(s){
+      html += '<span class="pill'+(isPR(ex.name,s.w)?" pr":"")+'">'+s.w+'lb × '+s.r+'</span>';
+    });
+    html += '</div></div>';
+  });
+  html += '<button class="btn btn-ghost" onclick="openModal()">+ ADD EXERCISE</button>';
+  if (workoutLog.length) html += '<button class="btn" onclick="finish()">✓ FINISH WORKOUT</button>';
+  if (!workoutLog.length) html += '<div class="empty" style="padding:30px 0"><div class="empty-icon">📋</div>Add your first exercise above</div>';
+  return html;
 }
 
-function renderHistory(el) {
-  el.innerHTML = `
-    <div class="section-title">Workout History</div>
-    ${state.sessions.length === 0
-      ? `<div class="empty-state"><div class="empty-icon">📅</div>No workouts logged yet</div>`
-      : state.sessions.map(s => `
-        <div class="history-card">
-          <div class="history-date">${s.day} — ${s.date}</div>
-          ${(s.exercises||[]).map(ex => {
-            const best = (ex.sets||[]).reduce((b,set) => parseFloat(set.weight)>parseFloat(b.weight||0)?set:b, ex.sets[0]||{});
-            return `<div class="history-ex"><strong>${ex.name}</strong> — ${(ex.sets||[]).length} sets · best ${best.weight||0}lb × ${best.reps||0}</div>`;
-          }).join("")}
-        </div>`).join("")
-    }
-  `;
+function histHTML() {
+  var html = '<div class="sec-title">Workout History</div>';
+  if (!sessions.length) return html + '<div class="empty"><div class="empty-icon">📅</div>No workouts logged yet</div>';
+  sessions.forEach(function(s){
+    html += '<div class="hist-card"><div class="hist-date">'+s.day+' — '+s.date+'</div>';
+    (s.exercises||[]).forEach(function(ex){
+      var best = {w:0,r:0};
+      (ex.sets||[]).forEach(function(set){ if (parseFloat(set.w) > parseFloat(best.w)) best = set; });
+      html += '<div class="hist-ex"><strong>'+ex.name+'</strong> — '+(ex.sets||[]).length+' sets · best '+best.w+'lb × '+best.r+'</div>';
+    });
+    html += '</div>';
+  });
+  return html;
 }
 
-function renderProgress(el) {
-  const prs = getPRs();
-  const totalEx = state.sessions.reduce((a,s) => a + (s.exercises||[]).length, 0);
-  el.innerHTML = `
-    <div class="section-title">Personal Records</div>
-    ${Object.keys(prs).length === 0
-      ? `<div class="empty-state"><div class="empty-icon">🏆</div>Log workouts to track your PRs</div>`
-      : `<div class="pr-grid">
-          ${Object.entries(prs).sort((a,b)=>b[1]-a[1]).map(([name,w]) => `
-            <div class="pr-card">
-              <div class="pr-exercise">${name}</div>
-              <div class="pr-weight">${w} <span class="pr-unit">lb</span></div>
-            </div>`).join("")}
-        </div>`
-    }
-    ${state.sessions.length > 0 ? `
-      <div class="section-title">Stats</div>
-      <div class="streak-card">
-        <div class="stats-row">
-          <div>
-            <div class="streak-label">Total Sessions</div>
-            <div class="streak-num" style="font-size:48px">${state.sessions.length}</div>
-          </div>
-          <div>
-            <div class="streak-label">Exercises Logged</div>
-            <div class="streak-num" style="font-size:48px">${totalEx}</div>
-          </div>
-        </div>
-      </div>` : ""}
-  `;
+function progHTML() {
+  var prs = getPRs();
+  var html = '<div class="sec-title">Personal Records</div>';
+  var keys = Object.keys(prs);
+  if (!keys.length) return html + '<div class="empty"><div class="empty-icon">🏆</div>Log workouts to track your PRs</div>';
+  keys.sort(function(a,b){ return prs[b]-prs[a]; });
+  html += '<div class="pr-grid">';
+  keys.forEach(function(name){
+    html += '<div class="pr-card"><div class="pr-ex">'+name+'</div><div class="pr-w">'+prs[name]+' <span class="pr-u">lb</span></div></div>';
+  });
+  html += '</div>';
+  if (sessions.length) {
+    var totalEx = 0;
+    sessions.forEach(function(s){ totalEx += (s.exercises||[]).length; });
+    html += '<div class="sec-title">Stats</div><div class="streak-card"><div class="stats-row"><div><div class="slabel">Total Sessions</div><div class="snum" style="font-size:48px">'+sessions.length+'</div></div><div><div class="slabel">Exercises</div><div class="snum" style="font-size:48px">'+totalEx+'</div></div></div></div>';
+  }
+  return html;
 }
 
-function renderModal() {
-  const overlay = document.getElementById('modalOverlay');
-  overlay.classList.remove('hidden');
-  const mc = document.getElementById('modalContent');
+function setDay(d) { activeDay = d; render(); }
 
-  if (!state.selectedEx) {
-    mc.innerHTML = `
-      <div class="exercise-picker">
-        ${EXERCISES.map(ex => `<div class="ex-btn" onclick="selectEx('${ex}')">${ex}</div>`).join("")}
-      </div>
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-    `;
-  } 
+function removeEx(id) {
+  workoutLog = workoutLog.filter(function(e){ return e.id !== id; });
+  render();
+}
+
+function finish() {
+  if (!workoutLog.length) return;
+  sessions.unshift({ id:uid(), date:new Date().toDateString(), day:activeDay, exercises:workoutLog.slice() });
+  save();
+  workoutLog = [];
+  go("history");
+}
+
+function openModal() {
+  selectedEx = null;
+  customName = "";
+  currentSets = [{w:"",r:""}];
+  showModal();
+}
+
+function showModal() {
+  var overlay = document.getElementById("overlay");
+  overlay.className = "overlay show";
+  var body = document.getElementById("modal-body");
+  if (!selectedEx) {
+    var html = '<div class="ex-grid">';
+    EXERCISES.forEach(function(ex){
+      html += '<div class="ex-btn" onclick="pickEx(\''+ex+'\')">'+ex+'</div>';
+    });
+    html += '</div><button class="btn btn-ghost" onclick="closeModal()">Cancel</button>';
+    body.innerHTML = html;
+  } else {
+    var isCustom = selectedEx === "Custom";
+    var html = '<div style="font-family:\'Bebas Neue\',sans-serif;font-size:18px;letter-spacing:2px;margin-bottom:16px;color:var(--accent)">'+(isCustom?"Custom Exercise":selectedEx)+'</div>';
+    if (isCustom) html += '<input class="custom-inp" id="custname" placeholder="Exercise name..." value="'+customName+'" oninput="customName=this.value" />';
+    html += '<div class="col-hdr"><div class="col-lbl">WEIGHT (lb)</div><div style="width:16px"></div><div class="col-lbl">REPS</div><div style="width:44px"></div></div>';
+    currentSets.forEach(function(s,i){
+      html += '<div class="set-row"><div class="set-lbl">SET '+(i+1)+'</div>';
+      html += '<input class="set-inp" type="number" inputmode="decimal" placeholder="0" value="'+s.w+'" onchange="updSet('+i+',\'w\',this.value)" />';
+      html += '<div class="set-x">×</div>';
+      html += '<input class="set-inp" type="number" inputmode="numeric" placeholder="0" value="'+s.r+'" onchange="updSet('+i+',\'r\',this.value)" />';
+      html += (currentSets.length>1 ? '<button class="del-btn" onclick="remSet('+i+')">✕</button>' : '<div style="width:44px"></div>');
+      html += '</div>';
+    });
+    html += '<button class="add-set-btn" onclick="addSet()">+ Add Set</button>';
+    html += '<button class="btn" onclick="logEx()">LOG EXERCISE</button>';
+    html += '<button class="btn btn-ghost" onclick="backToList()">← BACK</button>';
+    body.innerHTML = html;
+  }
+}
+
+function pickEx(ex) { selectedEx = ex; showModal(); }
+
+function backToList() { selectedEx = null; currentSets = [{w:"",r:""}]; showModal(); }
+
+function addSet() { currentSets.push({w:"",r:""}); showModal(); }
+
+function remSet(i) { currentSets.splice(i,1); showModal(); }
+
+function updSet(i,field,val) { currentSets[i][field] = val; }
+
+function logEx() {
+  var name = selectedEx === "Custom" ? customName : selectedEx;
+  if (!name) return;
+  var valid = currentSets.filter(function(s){ return s.w || s.r; });
+  if (!valid.length) return;
+  workoutLog.push({ id:uid(), name:name, sets:valid.slice() });
+  closeModal();
+  render();
+}
+
+function closeModal() {
+  document.getElementById("overlay").className = "overlay";
+  selectedEx = null;
+}
+
+function overlayClick(e) {
+  if (e.target === document.getElementById("overlay")) closeModal();
+}
+
+render();
+</script>
+</body>
+</html>
+HTMLEOF
+echo "Done - $(wc -c < /home/claude/ironlog_fixed.html) bytes"
