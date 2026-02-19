@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="IronLog" />
+  <title>IronLog</title>
+
+  <!-- PWA Manifest inline -->
+  <script>
+    const manifest = {
+      name: "IronLog - Fitness Tracker",
+      short_name: "IronLog",
+      description: "Track your weight room progress",
+      start_url: ".",
+      display: "standalone",
+      background_color: "#0a0a0a",
+      theme_color: "#0a0a0a",
+      icons: [
+        { src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230a0a0a'/><text y='.9em' font-size='80' x='10'>🏋️</text></svg>", sizes: "192x192", type: "image/svg+xml" }
+      ]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+    const manifestURL = URL.createObjectURL(blob);
+    document.write('<link rel="manifest" href="' + manifestURL + '">');
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0a; --surface: #141414; --surface2: #1e1e1e;
+      --border: #2a2a2a; --accent: #e8ff00; --accent2: #ff4d00;
+      --text: #f0f0f0; --muted: #666; --success: #00e87a;
+    }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      max-width: 430px; margin: 0 auto;
+      height: 100%; display: flex; flex-direction: column;
+      -webkit-tap-highlight-color: transparent;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    #app { display: flex; flex-direction: column; height: 100%; }
+    .header {
+      padding: 16px 20px 0; display: flex;
+      align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; color: var(--accent); line-height: 1; }
+    .logo span { color: var(--text); }
+    .date-badge { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+    .content { flex: 1; overflow-y: auto; padding: 16px 20px 20px; -webkit-overflow-scrolling: touch; }
+    .nav {
+      flex-shrink: 0; background: #111;
+      border-top: 1px solid var(--border); display: flex;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 4px; padding: 12px 8px; background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 10px; font-family: 'DM Mono', monospace;
+      letter-spacing: 1px; text-transform: uppercase; transition: color 0.2s;
+    }
+    .nav-btn.active { color: var(--accent); }
+    .nav-btn svg { width: 22px; height: 22px; }
+    .streak-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px; margin-bottom: 16px;
+      position: relative; overflow: hidden;
+    }
+    .streak-card::before {
+      content: ''; position: absolute; top: -40px; right: -40px;
+      width: 120px; height: 120px; background: var(--accent); opacity: 0.05; border-radius: 50%;
+    }
+    .streak-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+    .streak-num { font-family: 'Bebas Neue', sans-serif; font-size: 72px; line-height: 1; color: var(--accent); }
+    .streak-sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin: 24px 0 12px; }
+    .btn {
+      display: block; width: 100%; padding: 16px; background: var(--accent); color: #000;
+      border: none; border-radius: 12px; font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px; letter-spacing: 2px; cursor: pointer; text-align: center;
+      transition: transform 0.1s, opacity 0.1s; margin-bottom: 0;
+    }
+    .btn:active { transform: scale(0.98); opacity: 0.9; }
+    .btn-ghost { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .btn-sm { width: auto; display: inline-block; padding: 8px 16px; font-size: 14px; border-radius: 8px; }
+    .mb10 { margin-bottom: 10px; }
+    .mb16 { margin-bottom: 16px; }
+    .session-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .session-icon {
+      width: 44px; height: 44px; background: var(--surface2);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .session-info { flex: 1; }
+    .session-name { font-weight: 500; font-size: 15px; }
+    .session-meta { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
+    .day-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 20px; scrollbar-width: none; }
+    .day-tabs::-webkit-scrollbar { display: none; }
+    .day-tab {
+      flex-shrink: 0; padding: 8px 14px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 20px;
+      font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--muted); cursor: pointer; transition: all 0.2s;
+    }
+    .day-tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
+    .exercise-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+    .ex-btn {
+      padding: 12px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-size: 13px; text-align: center;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .ex-btn:active { border-color: var(--accent); color: var(--accent); background: #1a1a00; }
+    .set-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .set-label { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); width: 36px; flex-shrink: 0; }
+    .set-input {
+      flex: 1; padding: 12px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-family: 'DM Mono', monospace;
+      font-size: 15px; text-align: center; outline: none; -webkit-appearance: none;
+      appearance: none;
+    }
+    .set-input:focus { border-color: var(--accent); }
+    .set-x { color: var(--muted); font-size: 14px; flex-shrink: 0; }
+    .del-btn { background: none; border: none; color: var(--muted); cursor: pointer; padding: 8px; font-size: 18px; flex-shrink: 0; }
+    .add-set-btn {
+      width: 100%; padding: 12px; background: none; border: 1px dashed var(--border);
+      border-radius: 8px; color: var(--muted); font-size: 13px; cursor: pointer;
+      margin-bottom: 16px; transition: all 0.2s;
+    }
+    .add-set-btn:active { border-color: var(--accent); color: var(--accent); }
+    .logged-exercise { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 10px; }
+    .logged-ex-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .logged-ex-name { font-weight: 500; font-size: 15px; }
+    .set-pill { display: inline-block; padding: 4px 8px; background: var(--surface2); border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); margin: 2px; }
+    .set-pill.pr { background: #1a1500; color: var(--accent); }
+    .history-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .history-date { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .history-ex { font-size: 13px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid var(--border); }
+    .history-ex:last-child { border-bottom: none; }
+    .history-ex strong { color: var(--text); }
+    .pr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .pr-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+    .pr-exercise { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; letter-spacing: 0.5px; margin-bottom: 6px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+    .pr-weight { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--accent); line-height: 1; }
+    .pr-unit { font-size: 14px; color: var(--muted); }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; display: flex; align-items: flex-end; }
+    .modal { background: var(--surface); border-radius: 20px 20px 0 0; padding: 24px 20px 40px; width: 100%; border-top: 1px solid var(--border); max-height: 85vh; overflow-y: auto; }
+    .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; margin-bottom: 20px; }
+    .custom-input { width: 100%; padding: 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 16px; outline: none; margin-bottom: 12px; }
+    .custom-input:focus { border-color: var(--accent); }
+    .tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-family: 'DM Mono', monospace; letter-spacing: 1px; text-transform: uppercase; background: #001a0a; color: var(--success); margin-left: 8px; vertical-align: middle; }
+    .col-label { flex: 1; text-align: center; font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; letter-spacing: 1px; }
+    .stats-row { display: flex; gap: 32px; }
+    .hidden { display: none; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="logo">IRON<span>LOG</span></div>
+    <div class="date-badge" id="dateBadge"></div>
+  </div>
+  <div class="content" id="content"></div>
+  <nav class="nav">
+    <button class="nav-btn active" data-view="home" onclick="switchView('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      Home
+    </button>
+    <button class="nav-btn" data-view="log" onclick="switchView('log')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Log
+    </button>
+    <button class="nav-btn" data-view="history" onclick="switchView('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      History
+    </button>
+    <button class="nav-btn" data-view="progress" onclick="switchView('progress')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      PRs
+    </button>
+  </nav>
+</div>
+
+<!-- ADD EXERCISE MODAL -->
+<div class="modal-overlay hidden" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Add Exercise</div>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+const EXERCISES = [
+  "Bench Press","Squat","Deadlift","Overhead Press","Barbell Row",
+  "Incline Press","Leg Press","Pull-Up","Dumbbell Curl","Tricep Pushdown",
+  "Lateral Raise","Romanian Deadlift","Hip Thrust","Cable Row","Custom"
+];
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+
+let state = {
+  view: "home",
+  sessions: [],
+  activeDay: DAYS[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1],
+  workoutLog: [],
+  addingExercise: false,
+  selectedEx: null,
+  customName: "",
+  currentSets: [{weight:"",reps:""}],
+};
+
+// Load sessions from localStorage
+try { state.sessions = JSON.parse(localStorage.getItem("ironlog_sessions") || "[]"); } catch {}
+
+function save() {
+  try { localStorage.setItem("ironlog_sessions", JSON.stringify(state.sessions)); } catch {}
+}
+
+function genId() { return Math.random().toString(36).substr(2,9); }
+
+function getStreak() {
+  if (!state.sessions.length) return 0;
+  const dates = [...new Set(state.sessions.map(s => s.date))].sort().reverse();
+  const today = new Date().toDateString();
+  const yesterday = new Date(Date.now()-86400000).toDateString();
+  if (dates[0] !== today && dates[0] !== yesterday) return 0;
+  let streak = 0;
+  for (let i = 0; i < dates.length; i++) {
+    const expected = new Date(Date.now() - i * 86400000).toDateString();
+    if (dates[i] === expected) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function getPRs() {
+  const prs = {};
+  state.sessions.forEach(s => {
+    (s.exercises||[]).forEach(ex => {
+      (ex.sets||[]).forEach(set => {
+        const w = parseFloat(set.weight);
+        if (!isNaN(w) && w > 0 && (!prs[ex.name] || w > prs[ex.name])) prs[ex.name] = w;
+      });
+    });
+  });
+  return prs;
+}
+
+function isPR(name, weight) {
+  const prs = getPRs();
+  if (!prs[name]) return false;
+  return parseFloat(weight) >= prs[name];
+}
+
+function switchView(v) {
+  state.view = v;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  render();
+}
+
+function render() {
+  document.getElementById('dateBadge').textContent = new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"}).toUpperCase();
+  const content = document.getElementById('content');
+
+  if (state.view === "home") renderHome(content);
+  else if (state.view === "log") renderLog(content);
+  else if (state.view === "history") renderHistory(content);
+  else if (state.view === "progress") renderProgress(content);
+
+  if (state.addingExercise) renderModal();
+  else document.getElementById('modalOverlay').classList.add('hidden');
+}
+
+function renderHome(el) {
+  const streak = getStreak();
+  const recent = state.sessions.slice(0,5);
+  el.innerHTML = `
+    <div class="streak-card">
+      <div class="streak-label">Current Streak</div>
+      <div class="streak-num">${streak}</div>
+      <div class="streak-sub">${streak === 1 ? "day" : "days"} in a row</div>
+    </div>
+    <button class="btn" onclick="switchView('log')">+ START WORKOUT</button>
+    <div class="section-title">Recent Sessions</div>
+    ${recent.length === 0
+      ? `<div class="empty-state"><div class="empty-icon">🏋️</div>No sessions yet. Start your first workout!</div>`
+      : recent.map(s => `
+        <div class="session-card">
+          <div class="session-icon">💪</div>
+          <div class="session-info">
+            <div class="session-name">${s.day}</div>
+            <div class="session-meta">${s.date} · ${(s.exercises||[]).length} exercises</div>
+          </div>
+        </div>`).join("")
+    }
+  `;
+}
+
+function renderLog(el) {
+  const prs = getPRs();
+  const loggedHTML = state.workoutLog.map(ex => {
+    const topSet = ex.sets.reduce((b,s) => parseFloat(s.weight) > parseFloat(b.weight||0) ? s : b, ex.sets[0]);
+    const pr = topSet && isPR(ex.name, topSet.weight);
+    const pills = ex.sets.map(s => `<span class="set-pill${isPR(ex.name,s.weight)?' pr':''}">${s.weight}lb × ${s.reps}</span>`).join("");
+    return `
+      <div class="logged-exercise">
+        <div class="logged-ex-header">
+          <div class="logged-ex-name">${ex.name}${pr?'<span class="tag">PR</span>':''}</div>
+          <button class="del-btn" onclick="removeEx('${ex.id}')">✕</button>
+        </div>
+        <div>${pills}</div>
+      </div>`;
+  }).join("");
+
+  el.innerHTML = `
+    <div class="section-title">Today's Workout</div>
+    <div class="day-tabs">
+      ${DAYS.map(d => `<div class="day-tab${state.activeDay===d?' active':''}" onclick="setDay('${d}')">${d.slice(0,3)}</div>`).join("")}
+    </div>
+    ${loggedHTML}
+    <button class="btn btn-ghost mb10" onclick="openAddExercise()">+ ADD EXERCISE</button>
+    ${state.workoutLog.length > 0 ? `<button class="btn" onclick="finishWorkout()">✓ FINISH WORKOUT</button>` : ""}
+    ${state.workoutLog.length === 0 ? `<div class="empty-state" style="padding:30px 0"><div class="empty-icon">📋</div>Add your first exercise above</div>` : ""}
+  `;
+}
+
+function renderHistory(el) {
+  el.innerHTML = `
+    <div class="section-title">Workout History</div>
+    ${state.sessions.length === 0
+      ? `<div class="empty-state"><div class="empty-icon">📅</div>No workouts logged yet</div>`
+      : state.sessions.map(s => `
+        <div class="history-card">
+          <div class="history-date">${s.day} — ${s.date}</div>
+          ${(s.exercises||[]).map(ex => {
+            const best = (ex.sets||[]).reduce((b,set) => parseFloat(set.weight)>parseFloat(b.weight||0)?set:b, ex.sets[0]||{});
+            return `<div class="history-ex"><strong>${ex.name}</strong> — ${(ex.sets||[]).length} sets · best ${best.weight||0}lb × ${best.reps||0}</div>`;
+          }).join("")}
+        </div>`).join("")
+    }
+  `;
+}
+
+function renderProgress(el) {
+  const prs = getPRs();
+  const totalEx = state.sessions.reduce((a,s) => a + (s.exercises||[]).length, 0);
+  el.innerHTML = `
+    <div class="section-title">Personal Records</div>
+    ${Object.keys(prs).length === 0
+      ? `<div class="empty-state"><div class="empty-icon">🏆</div>Log workouts to track your PRs</div>`
+      : `<div class="pr-grid">
+          ${Object.entries(prs).sort((a,b)=>b[1]-a[1]).map(([name,w]) => `
+            <div class="pr-card">
+              <div class="pr-exercise">${name}</div>
+              <div class="pr-weight">${w} <span class="pr-unit">lb</span></div>
+            </div>`).join("")}
+        </div>`
+    }
+    ${state.sessions.length > 0 ? `
+      <div class="section-title">Stats</div>
+      <div class="streak-card">
+        <div class="stats-row">
+          <div>
+            <div class="streak-label">Total Sessions</div>
+            <div class="streak-num" style="font-size:48px">${state.sessions.length}</div>
+          </div>
+          <div>
+            <div class="streak-label">Exercises Logged</div>
+            <div class="streak-num" style="font-size:48px">${totalEx}</div>
+          </div>
+        </div>
+      </div>` : ""}
+  `;
+}
+
+function renderModal() {
+  const overlay = document.getElementById('modalOverlay');
+  overlay.classList.remove('hidden');
+  const mc = document.getElementById('modalContent');
+
+  if (!state.selectedEx) {
+    mc.innerHTML = `
+      <div class="exercise-picker">
+        ${EXERCISES.map(ex => `<div class="ex-btn" onclick="selectEx('${ex}')">${ex}</div>`).join("")}
+      </div>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    `;
+  } 
